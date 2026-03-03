@@ -13,7 +13,7 @@ st.subheader("AI-Powered Course Design Preparer")
 st.markdown("Upload a PDF and Claude AI will generate a full Course Design Document instantly.")
 
 # --- API Key Input ---
-api_key = st.text_input("🔑 Enter your Claude API Key", type="password", placeholder="sk-ant-...")
+api_key = AIzaSyA7I2vCRjlO0nON0rfbOU0sAUwfiekxpvU
 
 # --- File Uploader ---
 uploaded_file = st.file_uploader("📂 Upload your PDF", type=["pdf"])
