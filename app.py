@@ -1,7 +1,7 @@
 import streamlit as st
 import pdfplumber
 from docx import Document
-import anthropic
+import google.generativeai as genai
 import io
 import os
 
@@ -10,15 +10,16 @@ st.set_page_config(page_title="Oracle Agent v2.0", page_icon="📘", layout="cen
 
 st.title("📘 Oracle Agent v2.0")
 st.subheader("AI-Powered Course Design Preparer")
-st.markdown("Upload a PDF and Claude AI will generate a full Course Design Document instantly.")
+st.markdown("Upload a PDF and AI will generate a full Course Design Document instantly.")
 
-# --- API Key Input ---
-api_key = AIzaSyA7I2vCRjlO0nON0rfbOU0sAUwfiekxpvU
+# --- Hardcoded Gemini API Key (free, no credit card) ---
+api_key = "AIzaSyA7I2vCRjlO0nON0rfbOU0sAUwfiekxpvU"
+genai.configure(api_key=api_key)
 
 # --- File Uploader ---
 uploaded_file = st.file_uploader("📂 Upload your PDF", type=["pdf"])
 
-if uploaded_file and api_key:
+if uploaded_file:
     if st.button("✨ Generate Course Design Document", use_container_width=True):
         with st.spinner("Step 1/3 — Cleaning PDF..."):
             try:
@@ -40,17 +41,10 @@ if uploaded_file and api_key:
                 st.error(f"❌ PDF reading error: {e}")
                 st.stop()
 
-        with st.spinner("Step 2/3 — Claude is generating your Course Design..."):
+        with st.spinner("Step 2/3 — Gemini is generating your Course Design..."):
             try:
-                client = anthropic.Anthropic(api_key=api_key)
-
-                message = client.messages.create(
-                    model="claude-opus-4-5",
-                    max_tokens=2048,
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": f"""ROLE: Expert Instructional Designer.
+                model = genai.GenerativeModel("gemini-1.5-flash")
+                prompt = f"""ROLE: Expert Instructional Designer.
 TASK: Use the CLEANED TEXT below to design a detailed Course Design Document.
 
 CLEANED TEXT:
@@ -64,10 +58,9 @@ OUTPUT FORMAT (follow exactly):
    - For each Module: Module Title, 3 Topics, 1 Hands-on Lab activity
 5. Assessment Strategy
 6. Recommended Duration"""
-                        }
-                    ]
-                )
-                ai_response = message.content[0].text
+
+                response = model.generate_content(prompt)
+                ai_response = response.text
 
             except Exception as e:
                 st.error(f"❌ Claude API error: {e}")
@@ -104,7 +97,5 @@ OUTPUT FORMAT (follow exactly):
             use_container_width=True
         )
 
-elif uploaded_file and not api_key:
-    st.warning("⚠️ Please enter your Claude API Key above to proceed.")
-elif api_key and not uploaded_file:
+elif not uploaded_file:
     st.info("📂 Please upload a PDF to proceed.")
