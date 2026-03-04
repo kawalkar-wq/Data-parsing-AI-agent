@@ -1,7 +1,7 @@
 import streamlit as st
 import pdfplumber
 from docx import Document
-import google.generativeai as genai
+from groq import Groq
 import io
 import os
 
@@ -12,15 +12,15 @@ st.title("📘 Oracle Agent v2.0")
 st.subheader("AI-Powered Course Design Preparer")
 st.markdown("Upload a PDF and AI will generate a full Course Design Document instantly.")
 
-# --- Hardcoded Gemini API Key (free, no credit card) ---
-api_key = "AIzaSyCq7VtHBhyW0O3GJ3QV3wZA0n0qnlCqMdI"
-genai.configure(api_key=api_key)
+# --- Hardcoded Groq API Key (free, no credit card) ---
+api_key = "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"
 
 # --- File Uploader ---
 uploaded_file = st.file_uploader("📂 Upload your PDF", type=["pdf"])
 
 if uploaded_file:
     if st.button("✨ Generate Course Design Document", use_container_width=True):
+
         with st.spinner("Step 1/3 — Cleaning PDF..."):
             try:
                 clean_text = ""
@@ -41,10 +41,16 @@ if uploaded_file:
                 st.error(f"❌ PDF reading error: {e}")
                 st.stop()
 
-        with st.spinner("Step 2/3 — Gemini is generating your Course Design..."):
+        with st.spinner("Step 2/3 — AI is generating your Course Design..."):
             try:
-                model = genai.GenerativeModel("models/gemini-1.5-flash")
-                prompt = f"""ROLE: Expert Instructional Designer.
+                client = Groq(api_key=api_key)
+                chat_completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
+                    max_tokens=2048,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"""ROLE: Expert Instructional Designer.
 TASK: Use the CLEANED TEXT below to design a detailed Course Design Document.
 
 CLEANED TEXT:
@@ -58,12 +64,13 @@ OUTPUT FORMAT (follow exactly):
    - For each Module: Module Title, 3 Topics, 1 Hands-on Lab activity
 5. Assessment Strategy
 6. Recommended Duration"""
-
-                response = model.generate_content(prompt)
-                ai_response = response.text
+                        }
+                    ]
+                )
+                ai_response = chat_completion.choices[0].message.content
 
             except Exception as e:
-                st.error(f"❌ Claude API error: {e}")
+                st.error(f"❌ AI error: {e}")
                 st.stop()
 
         with st.spinner("Step 3/3 — Building your Word document..."):
@@ -74,7 +81,6 @@ OUTPUT FORMAT (follow exactly):
                 doc.add_paragraph(clean_text[:2000] + "..." if len(clean_text) > 2000 else clean_text)
                 doc.add_heading('AI-Generated Course Design', level=1)
                 doc.add_paragraph(ai_response)
-
                 docx_buffer = io.BytesIO()
                 doc.save(docx_buffer)
                 docx_buffer.seek(0)
@@ -83,7 +89,6 @@ OUTPUT FORMAT (follow exactly):
                 st.error(f"❌ Word doc error: {e}")
                 st.stop()
 
-        # --- Results ---
         st.success("✅ Done! Your Course Design Document is ready.")
         st.markdown("### 📋 Generated Course Design")
         st.markdown(ai_response)
@@ -96,6 +101,5 @@ OUTPUT FORMAT (follow exactly):
             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             use_container_width=True
         )
-
-elif not uploaded_file:
+else:
     st.info("📂 Please upload a PDF to proceed.")
