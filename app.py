@@ -43,7 +43,7 @@ if uploaded_file:
 
         with st.spinner("Step 2/3 — Gemini is generating your Course Design..."):
             try:
-                model = genai.GenerativeModel("gemini-1.5-flash-latest")
+                model = genai.GenerativeModel("models/gemini-1.5-flash")
                 prompt = f"""ROLE: Expert Instructional Designer.
 TASK: Use the CLEANED TEXT below to design a detailed Course Design Document.
 
