@@ -13,7 +13,7 @@ st.subheader("AI-Powered Course Design Preparer")
 st.markdown("Upload a PDF and AI will generate a full Course Design Document instantly.")
 
 # --- Hardcoded Gemini API Key (free, no credit card) ---
-api_key = "AIzaSyA7I2vCRjlO0nON0rfbOU0sAUwfiekxpvU"
+api_key = "AIzaSyCq7VtHBhyW0O3GJ3QV3wZA0n0qnlCqMdI"
 genai.configure(api_key=api_key)
 
 # --- File Uploader ---
